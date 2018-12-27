@@ -25,19 +25,12 @@ var screen = Dimensions.get('window');
 
 var styles = StyleSheet.create({
   wrapper: {
-    backgroundColor: 'white'
+    backgroundColor: 'transparent'
   },
 
   transparent: {
     zIndex: 2,
     backgroundColor: 'rgba(0,0,0,0)'
-  },
-
-  absolute: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0
   }
 });
 
@@ -66,6 +59,18 @@ var ModalBox = createReactClass({
     onClosingState: PropTypes.func
   },
 
+  getAbsoluteStyle: function() {
+    return {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      ...(this.props.entry !== 'bottom' || this.props.coverScreen
+        ? { top: 0 }
+        : {})
+    };
+  },
+
   getDefaultProps: function() {
     return {
       startOpen: false,
@@ -81,7 +86,7 @@ var ModalBox = createReactClass({
       backButtonClose: false,
       easing: Easing.elastic(0.8),
       coverScreen: false,
-      keyboardTopOffset: Platform.OS == 'ios' ? 22 : 0
+      keyboardTopOffset: Platform.OS == 'ios' ? 0 : 0
     };
   },
 
@@ -233,7 +238,7 @@ var ModalBox = createReactClass({
         requestAnimationFrame(() => {
           // Detecting modal position
           let positionDest = this.calculateModalPosition(
-            this.state.containerHeight - this.state.keyboardOffset,
+            this.state.containerHeight,
             this.state.containerWidth
           );
           if (
@@ -441,11 +446,14 @@ var ModalBox = createReactClass({
         >
           <Animated.View
             importantForAccessibility="no"
-            style={[styles.absolute, { opacity: this.state.backdropOpacity }]}
+            style={[
+              this.getAbsoluteStyle(),
+              { opacity: this.state.backdropOpacity }
+            ]}
           >
             <View
               style={[
-                styles.absolute,
+                this.getAbsoluteStyle(),
                 {
                   backgroundColor: this.props.backdropColor,
                   opacity: this.props.backdropOpacity
@@ -462,12 +470,17 @@ var ModalBox = createReactClass({
   },
 
   renderContent() {
+    var size = this.props.coverScreen
+      ? { height: this.state.containerHeight, width: this.state.containerWidth }
+      : {};
+
     var offsetX = (this.state.containerWidth - this.state.width) / 2;
 
     return (
       <Animated.View
         onLayout={this.onViewLayout}
         style={[
+          size,
           styles.wrapper,
           this.props.style,
           {
@@ -481,7 +494,7 @@ var ModalBox = createReactClass({
       >
         {this.props.backdropPressToClose && (
           <TouchableWithoutFeedback onPress={this.close}>
-            <View style={[styles.absolute]} />
+            <View style={[this.getAbsoluteStyle()]} />
           </TouchableWithoutFeedback>
         )}
         {this.props.children}
@@ -504,11 +517,11 @@ var ModalBox = createReactClass({
       <View
         importantForAccessibility="yes"
         accessibilityViewIsModal={true}
-        style={[styles.transparent, styles.absolute]}
+        style={[styles.transparent, this.getAbsoluteStyle()]}
         pointerEvents={'box-none'}
       >
         <View
-          style={{ flex: 0 }}
+          style={{ flex: this.props.coverScreen ? 1 : 0 }}
           pointerEvents={'box-none'}
           onLayout={this.onContainerLayout}
         >
