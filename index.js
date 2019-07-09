@@ -461,7 +461,8 @@ var ModalBox = createReactClass({
                 {
                   backgroundColor: this.props.backdropColor,
                   opacity: this.props.backdropOpacity
-                }
+                },
+                this.props.backdropStyle
               ]}
             />
             {this.props.backdropContent || []}
